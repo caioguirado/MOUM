@@ -1,6 +1,6 @@
 import numpy as np
 from models.model import Model
-from single_target import SingleTarget
+from .single_target import SingleTarget
 
 class MultiTarget(Model):
 
