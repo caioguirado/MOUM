@@ -1,5 +1,5 @@
 import numpy as np
-from models import Model
+from models.model import Model
 
 class SingleTarget(Model):
     
@@ -14,9 +14,9 @@ class SingleTarget(Model):
             self.models.append(model_d)
 
     def predict(self, X):
-        Y = []
+        Y_pred = []
         for model in self.models:
-            y_d_pred = model.predict(X)
-            Y.append(y_d_pred)
+            y_d_pred = model.predict(X) # reshape?
+            Y_pred.append(y_d_pred)
 
-        return np.concatenate([Y], axis=1)
+        return np.concatenate([Y_pred], axis=1)
