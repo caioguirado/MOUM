@@ -24,3 +24,10 @@ print(f"data info: {data['X'].shape, data['W'].shape, data['Y_obs'].shape}")
 rc_model = RegressorChain(base_estimator=CausalTree, base_estimator_kwargs={})
 rc_model.fit(X=data["X"], w=data["W"], Y=data["Y_obs"])
 print(rc_model.predict(X=data["X"]).shape)
+
+# experiment
+    # experiment type (mainly 2 - regression and rank)
+    # load parameters
+    # train models
+    # evaluate
+    # save/cache results
