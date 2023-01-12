@@ -122,3 +122,10 @@ plt.scatter(X[:, 0], Y_1, alpha=alpha, label='Y_1')
 plt.scatter(X[:, 0], tao1, alpha=alpha, label='tao1')
 plt.legend()
 plt.show()
+
+alpha=0.1
+plt.scatter(X[:, 0], Y_0, alpha=alpha, label='Y_0')
+plt.scatter(X[:, 0], Y_1, alpha=alpha, label='Y_1')
+plt.scatter(X[:, 0], tao1, alpha=alpha, label='tao1')
+plt.legend()
+plt.show()
