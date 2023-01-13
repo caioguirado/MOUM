@@ -49,10 +49,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 x = np.linspace(0, 1, 100)
+x = np.linspace(2, 3, 100)
 
-def sig(x):
-    exp = -20 * (x - 1/3)
-    return 1 + (1 / ( 1 + np.exp(exp) ))
+# def sig(x):
+#     exp = -20 * (x - 1/3)
+#     return 1 + (1 / ( 1 + np.exp(exp) ))
 
 def sig(x):
     exp = -12 * (x - 0.5)
@@ -84,7 +85,8 @@ m=2
 # X = np.random.multivariate_normal(np.zeros(m), cov_matrix, size=N)
 
 # X is uniform
-X = np.random.uniform(0, 1, size=(N, m))
+X = np.random.uniform(-1, 1, size=(N, m))
+X = np.random.uniform(1, 2, size=(N, m)) # not have 0 in the denominator
 
 mu_0 = get_mu(X, coef=-0.5)
 mu_1 = get_mu(X, coef=0.5)
@@ -92,7 +94,7 @@ Y_0 = mu_0 + np.random.normal(0, 1, size=N)
 Y_1 = mu_1 + np.random.normal(0, 1, size=N)
 tao1 = Y_1 - Y_0
 gain1 = tao1/Y_0
-plt.scatter(X[:, 0], X[:, 1], c=Y_1-Y_0, alpha=0.5)
+plt.scatter(X[:, 0], X[:, 1], c=tao1, alpha=0.5)
 plt.show()
 
 def g(X):
@@ -104,28 +106,58 @@ def h(f1x, gx):
     # return 1 - np.sqrt(f1x / gx)
     return 1 - (f1x / gx)**2
 
-def f2(X, f1x):
-    return g(X) * h(f1x, g(X))
+def f1(X):
+    mu_0 = get_mu(X, coef=-0.5)
+    mu_1 = get_mu(X, coef=0.5)
+    Y_0 = mu_0 + np.random.normal(0, 1, size=N)
+    Y_1 = mu_1 + np.random.normal(0, 1, size=N)
+    tao1 = Y_1 - Y_0
+    return tao1
 
-tao2 = f2(X, tao1)
+def f2(X):
+    return g(X) * h(f1(X), g(X))
 
+# tao2 = f2(X, tao1)
+# mu_0_2 = f2(X, mu_0)
+# mu_1_2 = f2(X, mu_1)
+# Y_0_2 = mu_0_2 + np.random.normal(0, 1, size=N)
+# Y_1_2 = mu_1_2 + np.random.normal(0, 1, size=N)
+# tao2 = Y_1_2 - Y_0_2
+
+tao2 = f2(X)
 plt.scatter(tao1, tao2)
 plt.show()
 
-plt.hexbin(X[:, 0], X[:, 1], C=tao1, gridsize=25)
-plt.colorbar()
-plt.show()
+def plot_effects(X, mu_1, mu_0):
+    n_rows = 3
+    n_cols = 2
+    tao1 = f1(X)
+    fig, axs = plt.subplots(n_rows, n_cols)
+    for i in range(n_rows-1):
+        ax1 = axs[i, 0]
+        x = X[:, i]
+        ax1.scatter(x, mu_1, alpha=0.5, label='1')
+        ax1.scatter(x, mu_0, alpha=0.5, label='0')
+        # ax1.set_ylim(-2, 2)
+        ax1.legend()
+        # ax1.relim()
 
-alpha=0.1
-plt.scatter(X[:, 0], Y_0, alpha=alpha, label='Y_0')
-plt.scatter(X[:, 0], Y_1, alpha=alpha, label='Y_1')
-plt.scatter(X[:, 0], tao1, alpha=alpha, label='tao1')
-plt.legend()
-plt.show()
+        ax2 = axs[i, 1]
+        ax2.scatter(x, tao1, alpha=0.5, label='tao')
+        # ax2.set_ylim(-9, 9)
+        # ax2.relim()
+    
+    ax1 = axs[-1, 0]
+    im = ax1.hexbin(X[:, 0], X[:, 1], C=tao1, gridsize=25)
+    # plt.colorbar(im, cax=ax1)
 
-alpha=0.1
-plt.scatter(X[:, 0], Y_0, alpha=alpha, label='Y_0')
-plt.scatter(X[:, 0], Y_1, alpha=alpha, label='Y_1')
-plt.scatter(X[:, 0], tao1, alpha=alpha, label='tao1')
-plt.legend()
-plt.show()
+    tao2 = f2(X)
+    ax1 = axs[-1, 1]
+    im = ax1.hexbin(X[:, 0], X[:, 1], C=tao2, gridsize=25)    
+    # fig.delaxes(axs[2,1])
+    plt.show()
+
+plot_effects(X, mu_1, mu_0)
+plot_effects(X, mu_1_2, mu_0_2, tao2)
+
+plt.hexbin(X[:, 0], X[:, 1], C=tao2, gridsize=25)
