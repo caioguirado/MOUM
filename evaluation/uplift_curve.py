@@ -1,3 +1,5 @@
+import numpy as np
+
 class UpliftCurve:
     def __init__(self, dataset, uplift):
         self.dataset = dataset
@@ -30,3 +32,15 @@ class UpliftCurve:
         r_c = self.get_group_sum(k=p*c_size, w=0)
 
         return r_t - r_c * (t_size / c_size)
+
+    def get_curve(self):
+        ps = np.linspace(0, 1, 20)
+        us = []
+        for p in ps:
+            u = self.get_uplift(p=p)
+            us.append(u)
+
+        return ps, us
+
+    def get_auuc(self):
+        return self.get_curve()[1].sum() # subtract random curve?
