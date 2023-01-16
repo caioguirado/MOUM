@@ -4,4 +4,4 @@ class Dataset:
         self.w = w
         self.Y_0 = Y_0
         self.Y_1 = Y_1
-        self.Y_obs = Y_obs
+        self.Y_obs = Y_obs # calculate

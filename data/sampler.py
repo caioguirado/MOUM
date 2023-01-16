@@ -20,6 +20,7 @@ class Sampler:
 
     def hte_sigmoid(self, X):
         for d in range(self.d):
+            pass
 
     def sample_synthetic(self):
         X = np.random.uniform(low=0, high=10, size=(self.N, self.m))
@@ -36,57 +37,66 @@ class Sampler:
         # calculate y_1s
         # calculate Y_obs
 
-def sig(x):
-    return 1 + (1 / ( 1 + np.exp(-20*((x-1)/3)) ))
+class LinearTradeOffSampler(Sampler):
+    def __init__(self, N, m, d):
+        super().__init__(N, m, d)
+        pass
+
+class NonLinearTradeOffSampler(Sampler):
+    def __init__(self, N, m, d):
+        super().__init__(N, m, d)
+        pass
 
 
 %load_ext autoreload
 %autoreload 2
-# %matplotlib inline
-
 import matplotlib.pyplot as plt
-
 import numpy as np
 
-x = np.linspace(0, 1, 100)
-x = np.linspace(2, 3, 100)
-
-# def sig(x):
-#     exp = -20 * (x - 1/3)
-#     return 1 + (1 / ( 1 + np.exp(exp) ))
+def sig2(x):
+    exp = -20*((x-1)/3)
+    return 1 + (1 / ( 1 + np.exp(exp) ))
 
 def sig(x):
     exp = -12 * (x - 0.5)
     return 2 / ( 1 + np.exp(exp) )
 
+def sig(x, k=5):
+    # -1 to 1
+    return 2/(1 + np.exp(-k*x)) - 1
+
+def sigmoid_compressed(x, k=5, b=0.5):
+    x = x / x.max()
+    return 2/(1 + np.exp(-k*(x-b))) - 1
+
+def sig3(x):
+    s1 = sig(x) * 0.5
+    step_1 = np.maximum(x-0.5, 0)
+    s2 = 1 - sig(x) * 0.5
+    step_2 =  np.maximum(-1*x-0.5, 0)
+    return s1 * step_1 + s2 * step_2
+    
 def get_mu(X, coef):
     mu = 1
     for x in X.T:
         mu *= sig(x)
-    return coef * mu
 
-def plot(arg):
-    plt.plot(arg)
-    plt.show()
+    mu2 = 1
+    for x in X.T:
+        mu2 *= 1-sig(x)
+    return coef * (mu+mu2)
 
-def scatter(*arg):
-    plt.scatter(*arg)
-    plt.show()
+def get_mu(X, coef):
+    return coef * normal_pdf(X[:, 0]) * normal_pdf(X[:, 1])
 
 cov = 0.3
 N=10000
 m=2
 
-# X is multivariate normal
-# X_bound = 5
-# diag = np.random.uniform(X_bound, size=m)
-# cov_matrix = np.ones((m, m)) * cov
-# np.fill_diagonal(cov_matrix, diag)
-# X = np.random.multivariate_normal(np.zeros(m), cov_matrix, size=N)
+x = np.linspace(0, 1, 100)
 
 # X is uniform
-X = np.random.uniform(-1, 1, size=(N, m))
-X = np.random.uniform(1, 2, size=(N, m)) # not have 0 in the denominator
+X = np.random.uniform(0, 1, size=(N, m))
 
 mu_0 = get_mu(X, coef=-0.5)
 mu_1 = get_mu(X, coef=0.5)
@@ -96,6 +106,9 @@ tao1 = Y_1 - Y_0
 gain1 = tao1/Y_0
 plt.scatter(X[:, 0], X[:, 1], c=tao1, alpha=0.5)
 plt.show()
+
+def normal_pdf(x, mu=0.5, sigma=0.2):
+    return 1+-1*(1/(sigma*np.sqrt(2*np.pi)))*np.exp(-(x-mu)**2/(2*sigma**2))
 
 def g(X):
     d = X.shape[1]
