@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import multivariate_normal
+
 from data.tradeoffs.tradeoff import Tradeoff
 
 class HighlyNonLinearTradeoff(Tradeoff):
@@ -6,37 +8,29 @@ class HighlyNonLinearTradeoff(Tradeoff):
     def __init__(self) -> None:
         self.mus = []
 
-    def sigmoid(self, x):
-        exp = -12*(x-0.5)
-        return 2 / (1 + np.exp(exp)) #- 1
-
     def get_main_effect(self, X):
         # create random gaussians
+        n_gaussians = 8
+
+        # pick mean points
+        centers = np.random.uniform(0, 1, size=(n_gaussians, X.shape[1])).round(1)
+        stds = np.random.uniform(0, 0.2, n_gaussians).round(2)
+        orientation = np.random.choice([1, -1], size=n_gaussians)
+        mu = np.zeros(X.shape[0])
+        for i in range(n_gaussians):
+            rv = multivariate_normal(mean=centers[i], cov=np.eye(len(centers[i]))*stds[i])
+            mu += rv.pdf(X) * orientation[i]
         
-        mu = 1
-        for x in X[:, :2].T:
-            mu *= self.sigmoid(x)
-        
-        mu_0_0 = 0.5 * mu
-        mu_0_1 = -0.5 * mu
+        mu_0_0 =  mu
+        mu_0_1 = 2 * mu
         self.mus += [mu_0_0, mu_0_1]
-        Y_0_0 = (mu_0_0 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
-        Y_0_1 = (mu_0_1 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
+        Y_0_0 = (mu_0_0 + np.random.normal(0, 0.05, X.shape[0])).reshape(-1, 1)
+        Y_0_1 = (mu_0_1 + np.random.normal(0, 0.05, X.shape[0])).reshape(-1, 1)
 
         return np.concatenate([Y_0_0, Y_0_1], axis=1)
 
     def get_tradeoff_effect(self, X):
-        # create random gaussians
-        mu = 1
-        for x in X.T:
-            mu *= 1-self.sigmoid(x)
-        
-        mu_0_0 = 0.5 * mu
-        mu_0_1 = -0.5 * mu
-        Y_0_0 = (mu_0_0 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
-        Y_0_1 = (mu_0_1 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
-
-        return np.concatenate([Y_0_0, Y_0_1], axis=1)
+        return self.get_main_effect(X)
 
     def create_Y(self, X, n_responses):
         # return Y matrix Yij 

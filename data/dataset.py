@@ -27,6 +27,7 @@ class Dataset:
         return self.tradeoff.create_Y(self.X, self.n_responses)
 
     def plot_effects(self):
+        alpha=0.01
         nrows = self.n_responses + 1
         ncols = self.X_dim
         fig, axs = plt.subplots(nrows=nrows, ncols=ncols)
@@ -36,16 +37,20 @@ class Dataset:
                     im = axs[i, j].hexbin(x=self.X[:, 0], 
                                         y=self.X[:, 1], 
                                         C=self.Y[:, j+1]-self.Y[:, j], 
-                                        gridsize=10
+                                        gridsize=12
                     )
+                    # im = axs[i, j].tricontourf(self.X[:, 0], 
+                    #                         self.X[:, 1], 
+                    #                         self.Y[:, j+1]-self.Y[:, j]
+                    # )    
                     axs[i, j].set_xlabel('X_0')
                     axs[i, j].set_ylabel('X_1')                    
                     fig.colorbar(im, ax=axs[i, j], label=f'tao_{j}')
                 else:
                     sns.regplot(x=self.X[:, i], y=self.Y[:, j], ax=axs[i, j], scatter=False, label=f'Y_{j}_0')
                     sns.regplot(x=self.X[:, i], y=self.Y[:, j+1], ax=axs[i, j], scatter=False, label=f'Y_{j}_1')
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, j], alpha=0.05)
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, j+1], alpha=0.05)
+                    axs[i, j].scatter(self.X[:, i], self.Y[:, j], alpha=alpha)
+                    axs[i, j].scatter(self.X[:, i], self.Y[:, j+1], alpha=alpha)
                     axs[i, j].set_xlabel(f'X_{i}')
                     axs[i, j].set_ylabel(f'Y_{j}')
                     axs[i, j].legend()
@@ -53,5 +58,5 @@ class Dataset:
         plt.tight_layout()
         plt.show()
             
-dataset = Dataset(n_rows=1000, X_dim=2, n_responses=2, tradeoff_type='HIGHLY_NON_LINEAR')
+dataset = Dataset(n_rows=10000, X_dim=2, n_responses=2, tradeoff_type='HIGHLY_NON_LINEAR')
 dataset.plot_effects()
