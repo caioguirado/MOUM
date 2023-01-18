@@ -3,10 +3,6 @@ from abc import ABC, abstractclassmethod
 class Experiment(ABC):
 
     @abstractclassmethod
-    def load_config(self):
-        pass
-
-    @abstractclassmethod
     def save_results(self):
         pass
 

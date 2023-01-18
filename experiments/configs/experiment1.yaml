@@ -1,0 +1,32 @@
+global:
+  seed: 42
+
+dimensions:
+  dataset:
+    n_rows: 5000
+    X_dim: 2
+    n_responses: 2
+    tradeoff_type: 'NON_LINEAR'
+    prop_score: 0.5
+    n_quantiles: 5
+
+  models:
+    - CAUSAL_TREE
+    - CAUSAL_FOREST
+    - TL
+    - SL
+
+  methods:
+    - ST
+    - MT
+    - RC
+
+metrics:
+  - AAUUC
+  - ARMSE
+
+xp_specific:
+  X_dims: 
+  es:
+  Y_dims:
+  tds:
