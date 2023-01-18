@@ -1,8 +1,19 @@
+import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import StratifiedKFold
+
+from typing import List
 
 from data.tradeoffs import TradeoffEnum
+
+class Fold:
+    def __init__(self, fold_n, train_idx, test_idx) -> None:
+        self.fold_n = fold_n
+        self.train_idx = train_idx
+        self.test_idx = test_idx
 
 class Dataset:
     # prop score, n_X_cols, n_responses, tradeoff type, 
@@ -11,16 +22,47 @@ class Dataset:
                     X_dim, 
                     n_responses, 
                     tradeoff_type, 
-                    prop_score=0.5):
+                    prop_score=0.5, 
+                    n_quantiles=5):
+
         self.n_rows = n_rows
         self.X_dim = X_dim
         self.n_responses = n_responses
         self.tradeoff_type = tradeoff_type
         self.prop_score = prop_score
+        self.n_quantiles = n_quantiles
+
         self.X = np.random.uniform(0, 1, size=(self.n_rows, X_dim))
         self.w = np.random.binomial(1, self.prop_score, size=self.n_rows).reshape(-1, 1)
 
+        # create multi-output Y with synthetic counterfactuals
         self.Y = self.create_Y()
+
+        # create Y_obs
+        even_idxs = [i for i in range(self.Y.shape[1]) if i%2==0]
+        odd_idxs = [i for i in range(self.Y.shape[1]) if i%2!=0]
+        self.Y_d_0 = self.Y[:, even_idxs]
+        self.Y_d_1 = self.Y[:, odd_idxs]
+        self.Y_obs = np.where(self.w == 1, self.Y_d_1, self.Y_d_0)
+
+    def split(self, n_splits=5) -> List[Fold]:
+        # create quantization
+        ohe = OneHotEncoder(sparse=False)
+        quantiles = np.apply_along_axis(pd.qcut, axis=0, arr=self.Y_obs, q=self.n_quantiles)
+        encodings = ohe.fit_transform(quantiles)
+        separate_encodings = np.split(encodings, indices_or_sections=self.Y_obs.shape[1], axis=1)
+        response_encoding = sum(separate_encodings)
+        response_with_w_encoding = np.concatenate([self.w, response_encoding], axis=1).astype('int')
+        string_encoding = (
+            np.apply_along_axis(lambda x: ''.join(x), axis=1, arr=response_with_w_encoding.astype('str'))
+        )
+
+        folds = []
+        skf = StratifiedKFold(n_splits=n_splits)
+        for i, (train_index, test_index) in enumerate(skf.split(self.X, string_encoding)):
+            folds.append(Fold(fold_n=i, train_idx=train_index, test_idx=test_index))
+            
+        return folds
 
     def create_Y(self):
         self.tradeoff = TradeoffEnum[self.tradeoff_type].value()
@@ -58,5 +100,6 @@ class Dataset:
         plt.tight_layout()
         plt.show()
             
-dataset = Dataset(n_rows=10000, X_dim=2, n_responses=2, tradeoff_type='HIGHLY_NON_LINEAR')
-dataset.plot_effects()
+dataset = Dataset(n_rows=10000, X_dim=2, n_responses=2, tradeoff_type='NON_LINEAR')
+# dataset.plot_effects()
+a = dataset.split()
