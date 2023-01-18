@@ -28,12 +28,21 @@ class NonLinearTradeoff(Tradeoff):
         for x in X.T:
             mu *= 1-self.sigmoid(x)
         
-        mu_0_0 = 0.5 * mu
-        mu_0_1 = -0.5 * mu
-        Y_0_0 = (mu_0_0 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
-        Y_0_1 = (mu_0_1 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
+        mu_d_0 = 0.5 * mu
+        mu_d_1 = -0.5 * mu
+        Y_d_0 = (mu_d_0 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
+        Y_d_1 = (mu_d_1 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
 
-        return np.concatenate([Y_0_0, Y_0_1], axis=1)
+        return np.concatenate([Y_d_0, Y_d_1], axis=1)
+
+    def get_contourf(self, X):
+        for i in range(2):
+            x_min = X[:, i].min()
+            x_max = X[:, i].max()
+            x_range = np.linspace(0, 1, 10)
+            X_, Y_ = np.meshgrid(x_range, x_range)
+            np.vstack([X_.ravel(), Y_.ravel()])
+
 
     def create_Y(self, X, n_responses):
         # return Y matrix Yij 
