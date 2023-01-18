@@ -1,36 +1,37 @@
 import numpy as np
 from data.tradeoffs.tradeoff import Tradeoff
 
-class LinearTradeoff(Tradeoff):
+class NonLinearTradeoff(Tradeoff):
     
     def __init__(self) -> None:
         self.mus = []
 
-    def linear(self, x):
-        return x
+    def sigmoid(self, x):
+        exp = -12*(x-0.5)
+        return 2 / (1 + np.exp(exp)) #- 1
 
     def get_main_effect(self, X):
         mu = 1
         for x in X[:, :2].T:
-            mu *= self.linear(x)
+            mu *= self.sigmoid(x)
         
-        mu_0_0 = 0.5*mu
-        mu_0_1 = 2*mu
+        mu_0_0 = 0.5 * mu
+        mu_0_1 = -0.5 * mu
         self.mus += [mu_0_0, mu_0_1]
-        Y_0_0 = (mu_0_0 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
-        Y_0_1 = (mu_0_1 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
+        Y_0_0 = (mu_0_0 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
+        Y_0_1 = (mu_0_1 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
 
         return np.concatenate([Y_0_0, Y_0_1], axis=1)
 
     def get_tradeoff_effect(self, X):
         mu = 1
         for x in X.T:
-            mu *= 1-self.linear(x)
+            mu *= 1-self.sigmoid(x)
         
         mu_0_0 = 0.5 * mu
         mu_0_1 = -0.5 * mu
-        Y_0_0 = (mu_0_0 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
-        Y_0_1 = (mu_0_1 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
+        Y_0_0 = (mu_0_0 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
+        Y_0_1 = (mu_0_1 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
 
         return np.concatenate([Y_0_0, Y_0_1], axis=1)
 
