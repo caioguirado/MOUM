@@ -14,6 +14,7 @@ class RegressorChain(Model):
         self.scaler = MinMaxScaler()
 
     def fit(self, X, w, Y):
+        self.models = []
         sample_chain = np.random.permutation(Y.shape[1])
 
         Y = self.scaler.fit_transform(Y)
@@ -37,13 +38,13 @@ class RegressorChain(Model):
         for i, model in enumerate(self.models):
             if prev_ys is not None:
                 X = np.concatenate([X, prev_ys], axis=1)
-            y_d_pred = model.predict(X).reshape(-1, 1)
+            y_d_pred = np.nan_to_num(model.predict(X).reshape(-1, 1))
+
             if prev_ys is None:
                 prev_ys = y_d_pred
             else:
                 prev_ys = np.concatenate([prev_ys, y_d_pred], axis=1)
-            if np.count_nonzero(np.isnan(y_d_pred)) > 0:
-                print(f'NAN FOUND: {i}')
+
             Y_pred.append(y_d_pred)
 
         return self.scaler.transform(np.concatenate(Y_pred, axis=1))
