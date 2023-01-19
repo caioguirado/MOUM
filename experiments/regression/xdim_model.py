@@ -12,7 +12,7 @@ from evaluation.mo_regression import average_rmse
 
 from models.enums import ModelEnum, MethodEnum
 
-class MethodModel(Experiment):
+class XdimModel(Experiment):
     def __init__(self, yaml_file) -> None:
         self.file_name = yaml_file.split('.') [0]
         self.current_file_path = pathlib.Path(__file__)
@@ -25,19 +25,24 @@ class MethodModel(Experiment):
             json.dump(results, file, indent=4)
 
     def run(self):
-        
+
         # create dataset
         dimensions = self.config['dimensions']
         dataset_config = dimensions['dataset']
-        dataset = Dataset(**dataset_config)
-
+        
+        method = dimensions['method']
+        max_xdim = dimensions['x_dim']
         results = []
-        for method in tqdm(dimensions['methods']):
+        for x_dim in tqdm(range(2, max_xdim + 1)):
+
+            dataset_config['X_dim'] = x_dim
+            dataset = Dataset(**dataset_config)
+
             for model in dimensions['models']:
-                print(f'evaluating....{method}_{model["enum"]}')
+                print(f'evaluating....{x_dim}_{model["enum"]}')
                 method_class = MethodEnum[method].value
                 model_class = ModelEnum[model['enum']].value
-                method_obj = method_class(base_estimator=model_class, 
+                method_obj = method_class(base_estimator=model_class,
                                             base_estimator_kwargs=model.get('args', {}))
                 print(model.get('args', {}))
 
@@ -54,14 +59,14 @@ class MethodModel(Experiment):
                     cv_results.append(armse)
 
                 results.append(dict(
+                            x_dim=x_dim,
                             method=method,
                             model=model['enum'],
                             cv_results=cv_results
                         )
                 )
 
-        print(results)
         self.save_results(results)
                     
-a = MethodModel(yaml_file='experiment1.yaml')
+a = XdimModel(yaml_file='experiment2.yaml')
 a.run()

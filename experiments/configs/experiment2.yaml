@@ -1,0 +1,37 @@
+global:
+  seed: 42
+
+dimensions:
+  dataset:
+    n_rows: 5000
+    n_responses: 2
+    tradeoff_type: 'NON_LINEAR'
+    prop_score: 0.5
+    n_quantiles: 5
+
+  models:
+    - enum: CAUSAL_TREE
+      args:
+        criterion: 'standard_mse'
+        control_name: 0
+
+    - enum: CAUSAL_FOREST
+      args:
+          criterion: 'standard_mse'
+          control_name: 0
+      
+    - enum: TL
+      args:
+        learner: RF
+
+    - enum: SL
+      args:
+        learner: RF
+
+  x_dim: 8
+
+  method: ST
+
+metrics:
+  - AAUUC
+  - ARMSE
