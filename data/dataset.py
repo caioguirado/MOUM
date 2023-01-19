@@ -7,7 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 
 from typing import List
 
-from data.tradeoffs import TradeoffEnum
+from tradeoffs.enums import TradeoffEnum
 
 class Fold:
     def __init__(self, fold_n, train_idx, test_idx) -> None:
@@ -16,7 +16,6 @@ class Fold:
         self.test_idx = test_idx
 
 class Dataset:
-    # prop score, n_X_cols, n_responses, tradeoff type, 
     def __init__(self, 
                     n_rows, 
                     X_dim, 

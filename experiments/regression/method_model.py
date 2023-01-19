@@ -1,11 +1,13 @@
 import os
-import pathlib
 import yaml
+import pathlib
+from tqdm import tqdm
 
 from data.dataset import Dataset
 from experiments.experiment import Experiment
 
-from tradeoffs.enums import TradeoffEnum
+from evaluation.mo_regression import average_rmse
+
 from models.enums import ModelEnum, MethodEnum
 
 class MethodModel(Experiment):
@@ -21,9 +23,43 @@ class MethodModel(Experiment):
     def run(self):
         
         # create dataset
-        dataset_config = self.config['dimensions']['dataset']
+        dimensions = self.config['dimensions']
+        dataset_config = dimensions['dataset']
         dataset = Dataset(**dataset_config)
 
-        pass
+        results = []
+        for method in tqdm(dimensions['methods']):
+            for model in dimensions['models']:
+                print(f'evaluating....{method}_{model["enum"]}')
+                method_class = MethodEnum[method].value
+                model_class = ModelEnum[model['enum']].value
+                method_obj = method_class(base_estimator=model_class, 
+                                            base_estimator_kwargs=model.get('args', {}))
+                print(model.get('args', {}))
+                # print(model['args'])
+                cv_results = []
+                for fold in dataset.split():
+                    method_obj.fit(X=dataset.X[fold.train_idx, :], 
+                                    w=dataset.w[fold.train_idx, :], 
+                                    Y=dataset.Y_obs[fold.train_idx, :])
+                    tao_pred = method_obj.predict(X=dataset.X[fold.test_idx, :])
+                    self.tao_pred = tao_pred
+                    self.dataset = dataset
+                    # evaluate
+                    print(tao_pred.shape)
+                    print(( dataset.Y_d_1[fold.test_idx, :] - dataset.Y_d_0[fold.test_idx, :]).shape)
+                    armse = average_rmse(tao_pred, dataset.Y_d_1[fold.test_idx, :] - dataset.Y_d_0[fold.test_idx, :])
+                    # add aAUUC
+                    cv_results.append(armse)
 
-MethodModel(yaml_file='experiment1.yaml')
+                results.append(dict(
+                            method=method,
+                            model=model['enum'],
+                            cv_results=cv_results
+                        )
+                )
+
+        print(results)
+                    
+a = MethodModel(yaml_file='experiment1.yaml')
+a.run()

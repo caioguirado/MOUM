@@ -1,4 +1,6 @@
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
 from models.model import Model
 
 class RegressorChain(Model):
@@ -9,9 +11,12 @@ class RegressorChain(Model):
         self.base_estimator = base_estimator
         self.base_estimator_kwargs = base_estimator_kwargs
         self.models = []
+        self.scaler = MinMaxScaler()
 
     def fit(self, X, w, Y):
         sample_chain = np.random.permutation(Y.shape[1])
+
+        Y = self.scaler.fit_transform(Y)
 
         prev_ys = None
         for d in sample_chain:
@@ -29,7 +34,7 @@ class RegressorChain(Model):
     def predict(self, X):
         Y_pred = []
         prev_ys = None
-        for model in self.models:
+        for i, model in enumerate(self.models):
             if prev_ys is not None:
                 X = np.concatenate([X, prev_ys], axis=1)
             y_d_pred = model.predict(X).reshape(-1, 1)
@@ -37,7 +42,8 @@ class RegressorChain(Model):
                 prev_ys = y_d_pred
             else:
                 prev_ys = np.concatenate([prev_ys, y_d_pred], axis=1)
-
+            if np.count_nonzero(np.isnan(y_d_pred)) > 0:
+                print(f'NAN FOUND: {i}')
             Y_pred.append(y_d_pred)
 
-        return np.concatenate(Y_pred, axis=1)
+        return self.scaler.transform(np.concatenate(Y_pred, axis=1))

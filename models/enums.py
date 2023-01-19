@@ -1,4 +1,5 @@
 from enum import Enum
+from sklearn.ensemble import RandomForestRegressor
 
 from .uplift_modeling.direct_approach import CausalTree, CausalRF
 from .uplift_modeling.two_model_approach import SLearner, TLearner
@@ -9,6 +10,7 @@ class ModelEnum(Enum):
     CAUSAL_FOREST = CausalRF
     TL = TLearner
     SL = SLearner
+    RF = RandomForestRegressor
 
 class MethodEnum(Enum):
     ST = SingleTarget

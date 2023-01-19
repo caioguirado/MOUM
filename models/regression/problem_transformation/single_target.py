@@ -11,6 +11,7 @@ class SingleTarget(Model):
         self.models = []
 
     def fit(self, X, w, Y):
+        self.models = []
         for d in range(Y.shape[1]):
             y_d = Y[:, d]
             model_d = self.base_estimator(**self.base_estimator_kwargs)
