@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import multivariate_normal
 
-from data.tradeoffs.tradeoff import Tradeoff
+from .tradeoff import Tradeoff
 
 class HighlyNonLinearTradeoff(Tradeoff):
     

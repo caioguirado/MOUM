@@ -12,7 +12,7 @@ from evaluation.mo_regression import average_rmse
 
 from models.enums import ModelEnum, MethodEnum
 
-class PropensityModel(Experiment):
+class YdimModel(Experiment):
     def __init__(self, yaml_file) -> None:
         self.file_name = yaml_file.split('.') [0]
         self.current_file_path = pathlib.Path(__file__)
@@ -31,16 +31,15 @@ class PropensityModel(Experiment):
         dataset_config = dimensions['dataset']
         
         method = dimensions['method']
-        propensity_step = dimensions['propensity_step']
-        
+        max_ydim = dimensions['y_dim']
         results = []
-        for propensity_score in tqdm(np.arange(0.1, 1, propensity_step)):
+        for y_dim in tqdm(range(2, max_ydim + 1)):
 
-            dataset_config['prop_score'] = propensity_score
+            dataset_config['n_responses'] = y_dim
             dataset = Dataset(**dataset_config)
 
             for model in dimensions['models']:
-                print(f'evaluating....{propensity_score}_{model["enum"]}')
+                print(f'evaluating....{y_dim}_{model["enum"]}')
                 method_class = MethodEnum[method].value
                 model_class = ModelEnum[model['enum']].value
                 method_obj = method_class(base_estimator=model_class,
@@ -60,7 +59,7 @@ class PropensityModel(Experiment):
                     cv_results.append(armse)
 
                 results.append(dict(
-                            propensity_score=propensity_score,
+                            y_dim=y_dim,
                             method=method,
                             model=model['enum'],
                             cv_results=cv_results
@@ -69,5 +68,5 @@ class PropensityModel(Experiment):
 
         self.save_results(results)
                     
-a = PropensityModel(yaml_file='experiment3.yaml')
+a = YdimModel(yaml_file='experiment4.yaml')
 a.run()

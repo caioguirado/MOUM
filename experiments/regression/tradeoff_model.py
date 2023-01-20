@@ -6,13 +6,14 @@ import numpy as np
 from tqdm import tqdm
 
 from data.dataset import Dataset
+from evaluation.uplift_curve import UpliftCurve
 from experiments.experiment import Experiment
 
 from evaluation.mo_regression import average_rmse
 
 from models.enums import ModelEnum, MethodEnum
 
-class PropensityModel(Experiment):
+class TDModel(Experiment):
     def __init__(self, yaml_file) -> None:
         self.file_name = yaml_file.split('.') [0]
         self.current_file_path = pathlib.Path(__file__)
@@ -31,16 +32,15 @@ class PropensityModel(Experiment):
         dataset_config = dimensions['dataset']
         
         method = dimensions['method']
-        propensity_step = dimensions['propensity_step']
-        
+        tradeoff_types = dimensions['tradeoff_types']
         results = []
-        for propensity_score in tqdm(np.arange(0.1, 1, propensity_step)):
+        for tradeoff_type in tqdm(tradeoff_types):
 
-            dataset_config['prop_score'] = propensity_score
+            dataset_config['tradeoff_type'] = tradeoff_type
             dataset = Dataset(**dataset_config)
 
             for model in dimensions['models']:
-                print(f'evaluating....{propensity_score}_{model["enum"]}')
+                print(f'evaluating....{tradeoff_type}_{model["enum"]}')
                 method_class = MethodEnum[method].value
                 model_class = ModelEnum[model['enum']].value
                 method_obj = method_class(base_estimator=model_class,
@@ -54,13 +54,12 @@ class PropensityModel(Experiment):
                                     Y=dataset.Y_obs[fold.train_idx, :])
                     tao_pred = method_obj.predict(X=dataset.X[fold.test_idx, :])
                     self.tao_pred = tao_pred
-                    self.dataset = dataset
                     armse = average_rmse(tao_pred, dataset.Y_d_1[fold.test_idx, :] - dataset.Y_d_0[fold.test_idx, :])
-                    # add aAUUC
-                    cv_results.append(armse)
+                    aauuc = UpliftCurve(df=dataset.get_split(fold.test_idx).copy(), uplift=self.tao_pred, weights='mean').get_auuc()
+                    cv_results.append({'armse': armse, 'aauuc': aauuc})
 
                 results.append(dict(
-                            propensity_score=propensity_score,
+                            tradeoff_type=tradeoff_type,
                             method=method,
                             model=model['enum'],
                             cv_results=cv_results
@@ -69,5 +68,5 @@ class PropensityModel(Experiment):
 
         self.save_results(results)
                     
-a = PropensityModel(yaml_file='experiment3.yaml')
+a = TDModel(yaml_file='experiment5.yaml')
 a.run()

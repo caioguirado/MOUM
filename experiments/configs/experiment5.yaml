@@ -4,9 +4,8 @@ global:
 dimensions:
   dataset:
     n_rows: 5000
-    X_dim: 3
     n_responses: 2
-    tradeoff_type: 'NON_LINEAR'
+    X_dim: 3
     prop_score: 0.5
     n_quantiles: 5
 
@@ -29,17 +28,13 @@ dimensions:
       args:
         learner: RF
 
-  methods:
-    - RC
-    - ST
-    - MT
+  tradeoff_types: 
+    - 'LINEAR'
+    - 'NON_LINEAR'
+    - 'HIGHLY_NON_LINEAR'
+
+  method: ST
 
 metrics:
   - AAUUC
   - ARMSE
-
-xp_specific:
-  X_dims: 
-  es:
-  Y_dims:
-  tds:

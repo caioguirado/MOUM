@@ -1,5 +1,5 @@
 import numpy as np
-from data.tradeoffs.tradeoff import Tradeoff
+from .tradeoff import Tradeoff
 
 class NonLinearTradeoff(Tradeoff):
     

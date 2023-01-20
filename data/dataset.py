@@ -44,24 +44,57 @@ class Dataset:
         self.Y_d_1 = self.Y[:, odd_idxs]
         self.Y_obs = np.where(self.w == 1, self.Y_d_1, self.Y_d_0)
 
+        columns = (
+            [f'X_{i}' for i in range(self.X.shape[1])] + 
+            ['w'] +
+            ['Y_{i}_0' for i in range(self.Y_d_0.shape[1])] +
+            ['Y_{i}_1' for i in range(self.Y_d_1.shape[1])] +
+            ['Y_{i}_obs' for i in range(self.Y_obs.shape[1])]
+            )
+        self.df = pd.DataFrame(np.concatenate([
+            self.X,
+            self.w,
+            self.Y_d_0,
+            self.Y_d_1,
+            self.Y_obs
+        ], axis=1), columns=columns)
+
+    # def split(self, n_splits=5) -> List[Fold]:
+    #     # create quantization
+    #     ohe = OneHotEncoder(sparse=False)
+    #     quantiles = np.apply_along_axis(pd.qcut, axis=0, arr=self.Y_obs, q=self.n_quantiles)
+    #     encodings = ohe.fit_transform(quantiles)
+    #     separate_encodings = np.split(encodings, indices_or_sections=self.Y_obs.shape[1], axis=1)
+    #     response_encoding = sum(separate_encodings)
+    #     response_with_w_encoding = np.concatenate([self.w, response_encoding], axis=1).astype('int')
+    #     string_encoding = (
+    #         np.apply_along_axis(lambda x: ''.join(x), axis=1, arr=response_with_w_encoding.astype('str'))
+    #     )
+
+    #     folds = []
+    #     skf = StratifiedKFold(n_splits=n_splits)
+    #     for i, (train_index, test_index) in enumerate(skf.split(self.X, string_encoding)):
+    #         folds.append(Fold(fold_n=i, train_idx=train_index, test_idx=test_index))
+            
+    #     return folds
+
     def split(self, n_splits=5) -> List[Fold]:
         # create quantization
-        ohe = OneHotEncoder(sparse=False)
-        quantiles = np.apply_along_axis(pd.qcut, axis=0, arr=self.Y_obs, q=self.n_quantiles)
-        encodings = ohe.fit_transform(quantiles)
-        separate_encodings = np.split(encodings, indices_or_sections=self.Y_obs.shape[1], axis=1)
-        response_encoding = sum(separate_encodings)
-        response_with_w_encoding = np.concatenate([self.w, response_encoding], axis=1).astype('int')
+        quantiles = pd.qcut(self.Y_obs.mean(axis=1, keepdims=False), q=self.n_quantiles).astype('str')
+        quantiles_w = np.concatenate([self.w, quantiles.reshape(-1, 1)], axis=1)
         string_encoding = (
-            np.apply_along_axis(lambda x: ''.join(x), axis=1, arr=response_with_w_encoding.astype('str'))
+            np.apply_along_axis(lambda x: ''.join(x), axis=1, arr=quantiles_w)
         )
 
         folds = []
         skf = StratifiedKFold(n_splits=n_splits)
         for i, (train_index, test_index) in enumerate(skf.split(self.X, string_encoding)):
             folds.append(Fold(fold_n=i, train_idx=train_index, test_idx=test_index))
-            
+
         return folds
+
+    def get_split(self, idx):
+        return self.df.iloc[idx, :].copy()
 
     def create_Y(self):
         self.tradeoff = TradeoffEnum[self.tradeoff_type].value()
@@ -99,6 +132,6 @@ class Dataset:
         plt.tight_layout()
         plt.show()
             
-dataset = Dataset(n_rows=10000, X_dim=2, n_responses=2, tradeoff_type='NON_LINEAR')
-# dataset.plot_effects()
-a = dataset.split()
+dataset = Dataset(n_rows=1000, X_dim=2, n_responses=2, tradeoff_type='NON_LINEAR')
+dataset.plot_effects()
+# a = dataset.split()

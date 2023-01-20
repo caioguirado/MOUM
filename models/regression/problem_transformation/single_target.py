@@ -21,7 +21,7 @@ class SingleTarget(Model):
     def predict(self, X):
         Y_pred = []
         for model in self.models:
-            y_d_pred = model.predict(X).reshape(-1, 1)
+            y_d_pred = np.nan_to_num(model.predict(X).reshape(-1, 1))
             Y_pred.append(y_d_pred)
 
         return np.concatenate(Y_pred, axis=1)
