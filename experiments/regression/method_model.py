@@ -1,16 +1,19 @@
 import os
 import json
 import yaml
+import shutil
 import pathlib
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
-from data.dataset import Dataset
-from experiments.experiment import Experiment
+from ...data.dataset import Dataset
+from ...experiments.experiment import Experiment
 
-from evaluation.mo_regression import average_rmse
+from ...evaluation.uplift_curve import UpliftCurve
+from ...evaluation.mo_regression import average_rmse
 
-from models.enums import ModelEnum, MethodEnum
+from ...models.enums import ModelEnum, MethodEnum
 
 class MethodModel(Experiment):
     def __init__(self, yaml_file) -> None:
@@ -21,8 +24,15 @@ class MethodModel(Experiment):
             self.config = yaml.safe_load(file) 
 
     def save_results(self, results):
-        with open(f'{self.current_file_path.parent.parent}/results/{self.file_name}.json', 'w') as file:
+        dir_name = self.verify_file_structure(self.file_name)
+        results = self.parse_results(results=results)
+        df = self.get_df(results=results, row='method', column='model')
+
+        with open(os.path.join(dir_name, f'{self.file_name}.json'), 'w') as file:
             json.dump(results, file, indent=4)
+        
+        with open(os.path.join(dir_name, 'table.tex'), 'w') as file:
+            file.write(df.to_latex())
 
     def run(self):
         
@@ -50,8 +60,8 @@ class MethodModel(Experiment):
                     self.tao_pred = tao_pred
                     self.dataset = dataset
                     armse = average_rmse(tao_pred, dataset.Y_d_1[fold.test_idx, :] - dataset.Y_d_0[fold.test_idx, :])
-                    # add aAUUC
-                    cv_results.append(armse)
+                    aauuc = UpliftCurve(df=dataset.get_split(fold.test_idx).copy(), uplift=self.tao_pred, weights='mean').get_auuc()
+                    cv_results.append({'armse': armse, 'aauuc': aauuc})
 
                 results.append(dict(
                             method=method,
@@ -62,6 +72,3 @@ class MethodModel(Experiment):
 
         print(results)
         self.save_results(results)
-                    
-a = MethodModel(yaml_file='experiment1.yaml')
-a.run()

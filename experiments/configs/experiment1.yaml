@@ -1,5 +1,6 @@
 global:
   seed: 42
+  xp_type: MM
 
 dimensions:
   dataset:
@@ -24,10 +25,12 @@ dimensions:
     - enum: TL
       args:
         learner: RF
+        random_state: 42
 
     - enum: SL
       args:
         learner: RF
+        random_state: 42
 
   methods:
     - RC

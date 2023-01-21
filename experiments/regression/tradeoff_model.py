@@ -2,16 +2,15 @@ import os
 import json
 import yaml
 import pathlib
-import numpy as np
 from tqdm import tqdm
 
-from data.dataset import Dataset
-from evaluation.uplift_curve import UpliftCurve
-from experiments.experiment import Experiment
+from ...data.dataset import Dataset
+from ...evaluation.uplift_curve import UpliftCurve
+from ...experiments.experiment import Experiment
 
-from evaluation.mo_regression import average_rmse
+from ...evaluation.mo_regression import average_rmse
 
-from models.enums import ModelEnum, MethodEnum
+from ...models.enums import ModelEnum, MethodEnum
 
 class TDModel(Experiment):
     def __init__(self, yaml_file) -> None:
@@ -67,6 +66,3 @@ class TDModel(Experiment):
                 )
 
         self.save_results(results)
-                    
-a = TDModel(yaml_file='experiment5.yaml')
-a.run()

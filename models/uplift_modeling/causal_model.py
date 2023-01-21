@@ -1,4 +1,4 @@
-from models.model import Model
+from ..model import Model
 
 class CausalMLModel(Model):
     def __init__(self, model_class, **model_kwargs):

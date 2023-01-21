@@ -1,5 +1,5 @@
 import numpy as np
-from models.model import Model
+from ...model import Model
 
 class SingleTarget(Model):
     

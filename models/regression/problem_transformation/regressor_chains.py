@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-from models.model import Model
+from ...model import Model
 
 class RegressorChain(Model):
 

@@ -7,7 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 
 from typing import List
 
-from tradeoffs.enums import TradeoffEnum
+from ..tradeoffs.enums import TradeoffEnum
 
 class Fold:
     def __init__(self, fold_n, train_idx, test_idx) -> None:
@@ -15,7 +15,7 @@ class Fold:
         self.train_idx = train_idx
         self.test_idx = test_idx
 
-class Dataset:
+class Dataset:  
     def __init__(self, 
                     n_rows, 
                     X_dim, 
@@ -131,7 +131,3 @@ class Dataset:
         
         plt.tight_layout()
         plt.show()
-            
-dataset = Dataset(n_rows=1000, X_dim=2, n_responses=2, tradeoff_type='NON_LINEAR')
-dataset.plot_effects()
-# a = dataset.split()

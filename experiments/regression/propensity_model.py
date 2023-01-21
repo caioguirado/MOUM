@@ -5,12 +5,13 @@ import pathlib
 import numpy as np
 from tqdm import tqdm
 
-from data.dataset import Dataset
-from experiments.experiment import Experiment
+from ...data.dataset import Dataset
+from ...evaluation.uplift_curve import UpliftCurve
+from ...experiments.experiment import Experiment
 
-from evaluation.mo_regression import average_rmse
+from ...evaluation.mo_regression import average_rmse
 
-from models.enums import ModelEnum, MethodEnum
+from ...models.enums import ModelEnum, MethodEnum
 
 class PropensityModel(Experiment):
     def __init__(self, yaml_file) -> None:
@@ -56,8 +57,8 @@ class PropensityModel(Experiment):
                     self.tao_pred = tao_pred
                     self.dataset = dataset
                     armse = average_rmse(tao_pred, dataset.Y_d_1[fold.test_idx, :] - dataset.Y_d_0[fold.test_idx, :])
-                    # add aAUUC
-                    cv_results.append(armse)
+                    aauuc = UpliftCurve(df=dataset.get_split(fold.test_idx).copy(), uplift=self.tao_pred, weights='mean').get_auuc()
+                    cv_results.append({'armse': armse, 'aauuc': aauuc})
 
                 results.append(dict(
                             propensity_score=propensity_score,
@@ -68,6 +69,3 @@ class PropensityModel(Experiment):
                 )
 
         self.save_results(results)
-                    
-a = PropensityModel(yaml_file='experiment3.yaml')
-a.run()
