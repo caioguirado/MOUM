@@ -24,14 +24,14 @@ class UpliftCurve:
             .query('w == @w')            
         )
 
-    def get_group_sum(self, k, w, column, policy='uplift'):
+    def get_group_sum(self, k, w, sort_column, sum_column='Y_obs', policy='uplift'):
         if policy == 'uplift':
             return (
                 self
                 .get_group(w)
-                .sort_values(by=[column], ascending=False)
+                .sort_values(by=[sort_column], ascending=False)
                 .head(k)
-                ['Y_obs']
+                [sum_column]
                 .sum()
             )
         elif policy == 'random':
@@ -39,19 +39,19 @@ class UpliftCurve:
                 self
                 .get_group(w)
                 # .sort_values(by=[column], ascending=False)
-                .sample(frac=1)
+                .sample(frac=1) # shuffle
                 .head(k)
-                ['Y_obs']
+                [sum_column]
                 .sum()
             )
 
-    def get_uplift(self, p, column='uplift', policy='uplift'):
+    def get_uplift(self, p, sort_column='uplift', sum_column='Y_obs', policy='uplift'):
         t_size = len(self.get_group(w=1))
         c_size = len(self.get_group(w=0))
 
         # eq. 9 in https://arxiv.org/abs/2002.05897
-        r_t = self.get_group_sum(k=int(p*t_size), w=1, column=column, policy=policy)
-        r_c = self.get_group_sum(k=int(p*c_size), w=0, column=column, policy=policy)
+        r_t = self.get_group_sum(k=int(p*t_size), w=1, sort_column=sort_column, sum_column=sum_column, policy=policy)
+        r_c = self.get_group_sum(k=int(p*c_size), w=0, sort_column=sort_column, sum_column=sum_column, policy=policy)
 
         return r_t/t_size - r_c/c_size
 
@@ -62,14 +62,29 @@ class UpliftCurve:
         taos = []
         random = []
         for p in ps:
-            uplift_pred = self.get_uplift(p=p, column='uplift', policy='uplift')
+            uplift_pred = self.get_uplift(p=p, sort_column='uplift', policy='uplift')
             us.append(uplift_pred)
-            uplift_true = self.get_uplift(p=p, column='tao_combined', policy='uplift')
+            uplift_true = self.get_uplift(p=p, sort_column='tao_combined', policy='uplift')
             taos.append(uplift_true)
-            uplift_random = self.get_uplift(p=p, column='tao_combined', policy='random')
+            uplift_random = self.get_uplift(p=p, sort_column='uplift', policy='random')
             random.append(uplift_random)
 
         return ps, us, taos, random
+
+    def get_custom_rank_curve(self, column_mr, column_scalar_w):
+        ps = np.linspace(0, 1, 20).tolist()
+        mr_rank = []
+        scalar_w = []
+        random = []
+        for p in ps:
+            mr_rank_pred = self.get_uplift(p=p, sort_column=column_mr, policy='uplift')
+            mr_rank.append(mr_rank_pred)
+            scalar_w_pred = self.get_uplift(p=p, sort_column=column_scalar_w, policy='uplift')
+            scalar_w.append(scalar_w_pred)
+            uplift_random = self.get_uplift(p=p, sort_column='tao_combined', policy='random')
+            random.append(uplift_random)
+
+        return ps, mr_rank, scalar_w, random
 
     def get_auuc(self):
         return np.array(self.get_curve()[1]).sum() # subtract random curve?

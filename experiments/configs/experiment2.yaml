@@ -31,6 +31,16 @@ dimensions:
         learner: RF
         random_state: 42
 
+    - enum: XL
+      args:
+        learner: RF
+        random_state: 42
+
+    - enum: RL
+      args:
+        learner: RF
+        random_state: 42        
+
   x_dim: 8
 
   method: ST

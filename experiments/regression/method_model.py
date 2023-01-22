@@ -27,12 +27,16 @@ class MethodModel(Experiment):
     def save_figures(self, results, dir_name):
         # plot uplift curves
         plt.figure()
+        ax = plt.subplot(111)
         for result in results:
             plt.plot(result['uplift_curve'][0], result['uplift_curve'][1], 
                     label=f'{result["method"]}_{result["model"]}')
-        plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][2], label='True uplift') # tao true
+        # plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][2], label='True uplift') # tao true
         plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][-1], label='Random', linestyle='--', color='r') # random policy
-        plt.legend()
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.tight_layout()
         plt.savefig(os.path.join(dir_name, f'uplift_curve.png'))
 
     def save_results(self, results):
