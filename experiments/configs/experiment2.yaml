@@ -24,7 +24,7 @@ dimensions:
     - enum: TL
       args:
         learner: RF
-        learner: RF
+        random_state: 42
 
     - enum: SL
       args:

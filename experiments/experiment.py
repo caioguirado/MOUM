@@ -33,11 +33,11 @@ class Experiment(ABC):
         
         return results
 
-    def get_df(self, results, row, column):
+    def get_df(self, results, row, column, drop_cols=['cv_results']):
         df = (
             pd
             .DataFrame(results)
-            .drop(columns=['cv_results'])
+            .drop(columns=drop_cols)
             .round(4)
             .assign(
                 armse=lambda x: x['armse_cv_mean'].astype(str) + '(' + x['armse_cv_std'].astype(str) + ')',

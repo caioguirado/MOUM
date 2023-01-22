@@ -20,9 +20,21 @@ class TDModel(Experiment):
         with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file) 
 
+    def save_figures(self, results, dir_name):
+        pass
+
     def save_results(self, results):
-        with open(f'{self.current_file_path.parent.parent}/results/{self.file_name}.json', 'w') as file:
+        dir_name = self.verify_file_structure(self.file_name)
+        results = self.parse_results(results=results)
+        df = self.get_df(results=results, row='tradeoff_type', column='model', drop_cols=['cv_results'])
+
+        # self.save_figures(results=results, dir_name=dir_name)
+
+        with open(os.path.join(dir_name, f'{self.file_name}.json'), 'w') as file:
             json.dump(results, file, indent=4)
+        
+        with open(os.path.join(dir_name, 'table.tex'), 'w') as file:
+            file.write(df.to_latex())
 
     def run(self):
 
@@ -52,9 +64,8 @@ class TDModel(Experiment):
                                     w=dataset.w[fold.train_idx, :], 
                                     Y=dataset.Y_obs[fold.train_idx, :])
                     tao_pred = method_obj.predict(X=dataset.X[fold.test_idx, :])
-                    self.tao_pred = tao_pred
-                    armse = average_rmse(tao_pred, dataset.Y_d_1[fold.test_idx, :] - dataset.Y_d_0[fold.test_idx, :])
-                    aauuc = UpliftCurve(df=dataset.get_split(fold.test_idx).copy(), uplift=self.tao_pred, weights='mean').get_auuc()
+                    armse = average_rmse(Y_true=dataset.tao[fold.test_idx, :], Y_pred=tao_pred, scale=False)
+                    aauuc = UpliftCurve(df=dataset.get_split(fold.test_idx).copy(), uplift=tao_pred, weights='mean').get_auuc()
                     cv_results.append({'armse': armse, 'aauuc': aauuc})
 
                 results.append(dict(

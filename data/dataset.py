@@ -43,20 +43,23 @@ class Dataset:
         self.Y_d_0 = self.Y[:, even_idxs]
         self.Y_d_1 = self.Y[:, odd_idxs]
         self.Y_obs = np.where(self.w == 1, self.Y_d_1, self.Y_d_0)
+        self.tao = self.Y_d_1 - self.Y_d_0
 
         columns = (
             [f'X_{i}' for i in range(self.X.shape[1])] + 
             ['w'] +
             ['Y_{i}_0' for i in range(self.Y_d_0.shape[1])] +
             ['Y_{i}_1' for i in range(self.Y_d_1.shape[1])] +
-            ['Y_{i}_obs' for i in range(self.Y_obs.shape[1])]
+            ['Y_{i}_obs' for i in range(self.Y_obs.shape[1])] +
+            ['tao_{i}' for i in range(self.tao.shape[1])]
             )
         self.df = pd.DataFrame(np.concatenate([
             self.X,
             self.w,
             self.Y_d_0,
             self.Y_d_1,
-            self.Y_obs
+            self.Y_obs,
+            self.tao
         ], axis=1), columns=columns)
 
     # def split(self, n_splits=5) -> List[Fold]:

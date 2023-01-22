@@ -9,3 +9,7 @@ class Model(ABC):
     @abstractclassmethod
     def predict(self, X):
         pass
+
+    def fit_predict(self, X, w, Y):
+        self.fit(X, w, Y)
+        return self.predict(X)

@@ -5,8 +5,6 @@ from ...model import Model
 
 class RegressorChain(Model):
 
-    # TODO: add support for sampling all possible permutations if d < 10
-
     def __init__(self, base_estimator, base_estimator_kwargs):
         self.base_estimator = base_estimator
         self.base_estimator_kwargs = base_estimator_kwargs

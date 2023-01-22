@@ -6,6 +6,7 @@ import pathlib
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 from ...data.dataset import Dataset
 from ...experiments.experiment import Experiment
@@ -23,10 +24,23 @@ class MethodModel(Experiment):
         with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file) 
 
+    def save_figures(self, results, dir_name):
+        # plot uplift curves
+        plt.figure()
+        for result in results:
+            plt.plot(result['uplift_curve'][0], result['uplift_curve'][1], 
+                    label=f'{result["method"]}_{result["model"]}')
+        plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][2], label='True uplift') # tao true
+        plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][-1], label='Random', linestyle='--', color='r') # random policy
+        plt.legend()
+        plt.savefig(os.path.join(dir_name, f'uplift_curve.png'))
+
     def save_results(self, results):
         dir_name = self.verify_file_structure(self.file_name)
         results = self.parse_results(results=results)
-        df = self.get_df(results=results, row='method', column='model')
+        df = self.get_df(results=results, row='method', column='model', drop_cols=['cv_results', 'uplift_curve'])
+
+        self.save_figures(results=results, dir_name=dir_name)
 
         with open(os.path.join(dir_name, f'{self.file_name}.json'), 'w') as file:
             json.dump(results, file, indent=4)
@@ -57,18 +71,22 @@ class MethodModel(Experiment):
                                     w=dataset.w[fold.train_idx, :], 
                                     Y=dataset.Y_obs[fold.train_idx, :])
                     tao_pred = method_obj.predict(X=dataset.X[fold.test_idx, :])
-                    self.tao_pred = tao_pred
-                    self.dataset = dataset
-                    armse = average_rmse(tao_pred, dataset.Y_d_1[fold.test_idx, :] - dataset.Y_d_0[fold.test_idx, :])
-                    aauuc = UpliftCurve(df=dataset.get_split(fold.test_idx).copy(), uplift=self.tao_pred, weights='mean').get_auuc()
+                    armse = average_rmse(Y_true=dataset.tao[fold.test_idx, :], Y_pred=tao_pred, scale=False)
+                    aauuc =  UpliftCurve(df=dataset.get_split(fold.test_idx).copy(), 
+                                            uplift=tao_pred, weights='mean').get_auuc()
                     cv_results.append({'armse': armse, 'aauuc': aauuc})
+
+                tao_pred_dataset = method_obj.fit_predict(X=dataset.X, 
+                                                            w=dataset.w, 
+                                                            Y=dataset.Y_obs)
+                uc_plot = UpliftCurve(df=dataset.df.copy(), 
+                                            uplift=tao_pred_dataset, weights='mean').get_curve()
 
                 results.append(dict(
                             method=method,
                             model=model['enum'],
-                            cv_results=cv_results
+                            cv_results=cv_results,
+                            uplift_curve=uc_plot
                         )
                 )
-
-        print(results)
         self.save_results(results)
