@@ -41,7 +41,7 @@ dimensions:
         learner: RF
         random_state: 42        
 
-  x_dim: 8
+  x_dim: 6
 
   method: ST
 

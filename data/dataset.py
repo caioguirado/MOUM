@@ -62,25 +62,6 @@ class Dataset:
             self.tao
         ], axis=1), columns=columns)
 
-    # def split(self, n_splits=5) -> List[Fold]:
-    #     # create quantization
-    #     ohe = OneHotEncoder(sparse=False)
-    #     quantiles = np.apply_along_axis(pd.qcut, axis=0, arr=self.Y_obs, q=self.n_quantiles)
-    #     encodings = ohe.fit_transform(quantiles)
-    #     separate_encodings = np.split(encodings, indices_or_sections=self.Y_obs.shape[1], axis=1)
-    #     response_encoding = sum(separate_encodings)
-    #     response_with_w_encoding = np.concatenate([self.w, response_encoding], axis=1).astype('int')
-    #     string_encoding = (
-    #         np.apply_along_axis(lambda x: ''.join(x), axis=1, arr=response_with_w_encoding.astype('str'))
-    #     )
-
-    #     folds = []
-    #     skf = StratifiedKFold(n_splits=n_splits)
-    #     for i, (train_index, test_index) in enumerate(skf.split(self.X, string_encoding)):
-    #         folds.append(Fold(fold_n=i, train_idx=train_index, test_idx=test_index))
-            
-    #     return folds
-
     def split(self, n_splits=5) -> List[Fold]:
         # create quantization
         quantiles = pd.qcut(self.Y_obs.mean(axis=1, keepdims=False), q=self.n_quantiles).astype('str')
@@ -103,11 +84,11 @@ class Dataset:
         self.tradeoff = TradeoffEnum[self.tradeoff_type].value()
         return self.tradeoff.create_Y(self.X, self.n_responses)
 
-    def plot_effects(self):
-        alpha=0.01
+    def plot_effects(self, save_filename=None):
+        alpha=0.08
         nrows = self.n_responses + 1
-        ncols = self.X_dim
-        fig, axs = plt.subplots(nrows=nrows, ncols=ncols)
+        ncols = 2
+        fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8))
         for i in range(nrows):
             for j in range(ncols):
                 if i == nrows-1:
@@ -133,4 +114,7 @@ class Dataset:
                     axs[i, j].legend()
         
         plt.tight_layout()
-        plt.show()
+        if save_filename is not None:
+            plt.savefig(save_filename)
+        else:
+            plt.show()

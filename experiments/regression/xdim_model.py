@@ -2,7 +2,10 @@ import os
 import json
 import yaml
 import pathlib
+import pandas as pd
+import seaborn as sns
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 from ...data.dataset import Dataset
 from ...evaluation.uplift_curve import UpliftCurve
@@ -35,6 +38,18 @@ class XdimModel(Experiment):
         
         with open(os.path.join(dir_name, 'table.tex'), 'w') as file:
             file.write(df.to_latex())
+
+        boxplot = []
+        for result in results:
+            boxplot.append([result['x_dim'], result['armse_cv_mean']])
+
+        df_boxplot = pd.DataFrame(data=boxplot, columns=['x', 'y'])
+        plt.figure(figsize=(12, 8))
+        sns.boxplot(data=df_boxplot, x='x', y='y')
+        plt.xlabel('X dimension')
+        plt.ylabel('aRMSE')
+        plt.title('Dimension influence on error')
+        plt.savefig(os.path.join(dir_name, f'boxplot.png'))
 
     def run(self):
 

@@ -48,4 +48,4 @@ class Experiment(ABC):
                         values=['armse', 'aauuc'])
         )
         
-        return df
+        return df.T

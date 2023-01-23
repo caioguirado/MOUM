@@ -6,6 +6,7 @@ from .regression.tradeoff_model import TDModel
 from .regression.method_model import MethodModel
 from .regression.propensity_model import PropensityModel
 from .regression.multirank_scalar import MultirankScalarization
+from .regression.get_data_plots import GetPlots
 
 class XPEnum(Enum):
     MM = MethodModel
@@ -14,3 +15,4 @@ class XPEnum(Enum):
     YM = YdimModel
     PM = PropensityModel
     MS = MultirankScalarization
+    PL = GetPlots

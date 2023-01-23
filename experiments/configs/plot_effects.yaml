@@ -1,0 +1,15 @@
+global:
+  seed: 42
+  xp_type: PL
+
+dimensions:
+  dataset:
+    n_rows: 5000
+    n_responses: 2
+    X_dim: 3
+    prop_score: 0.5
+    n_quantiles: 5
+    tradeoff_types: 
+      - 'LINEAR'
+      - 'NON_LINEAR'
+      - 'HIGHLY_NON_LINEAR'

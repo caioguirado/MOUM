@@ -25,7 +25,7 @@ class NonLinearTradeoff(Tradeoff):
 
     def get_tradeoff_effect(self, X):
         mu = 1
-        for x in X.T:
+        for x in X[:, :2].T:
             mu *= 1-self.sigmoid(x)
         
         mu_d_0 = 0.5 * mu

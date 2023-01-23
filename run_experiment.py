@@ -3,7 +3,7 @@ import sys
 import yaml
 import pathlib
 import numpy as np
-
+import matplotlib.pyplot as plt
 from .experiments.enums import XPEnum
 
 if __name__ == "__main__":
@@ -23,7 +23,8 @@ if __name__ == "__main__":
     
     seed = config['global']['seed']
     np.random.seed(seed)
-
+    plt.style.use('fivethirtyeight')
+    
     xp_type = config['global']['xp_type']
     xp = XPEnum[xp_type].value(yaml_file=yaml_file)
     xp.run()
