@@ -90,6 +90,7 @@ class Dataset:
         ncols = 2
         fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8))
         for i in range(nrows):
+            taos = []
             for j in range(ncols):
                 if i == nrows-1:
                     im = axs[i, j].hexbin(x=self.X[:, 0], 
@@ -104,17 +105,46 @@ class Dataset:
                     axs[i, j].set_xlabel('X_0')
                     axs[i, j].set_ylabel('X_1')                    
                     fig.colorbar(im, ax=axs[i, j], label=f'tao_{j}')
+                    hex_values = im.get_array().reshape(-1, 1)
+                    print(hex_values.shape)
+                    taos.append(hex_values)
+                    offsets = im.get_offsets()
                 else:
-                    sns.regplot(x=self.X[:, i], y=self.Y[:, j], ax=axs[i, j], scatter=False, label=f'Y_{j}_0')
-                    sns.regplot(x=self.X[:, i], y=self.Y[:, j+1], ax=axs[i, j], scatter=False, label=f'Y_{j}_1')
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, j], alpha=alpha)
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, j+1], alpha=alpha)
+                    # sns.regplot(x=self.X[:, i], y=self.Y[:, j], ax=axs[i, j], scatter=False, label=f'Y_{j}_0')
+                    # sns.regplot(x=self.X[:, i], y=self.Y[:, j+1], ax=axs[i, j], scatter=False, label=f'Y_{j}_1')
+                    axs[i, j].scatter(self.X[:, i], self.Y[:, j], alpha=alpha, label=f'Y_{j}_0')
+                    axs[i, j].scatter(self.X[:, i], self.Y[:, j+1], alpha=alpha, label=f'Y_{j}_1')
                     axs[i, j].set_xlabel(f'X_{i}')
                     axs[i, j].set_ylabel(f'Y_{j}')
                     axs[i, j].legend()
         
+        uplifts = np.concatenate(taos, axis=1)
+        pp = np.where((uplifts[:, 0] > 0) & (uplifts[:, 1] > 0), 1, 0)
+        mm = np.where((uplifts[:, 0] > 0) & (uplifts[:, 1] < 0), 2, 0)
+        mm += np.where((uplifts[:, 0] < 0) & (uplifts[:, 1] > 0), 2, 0)
+        nn = np.where((uplifts[:, 0] < 0) & (uplifts[:, 1] < 0), 3, 0)
+        uplifts = pp + mm + nn
+
         plt.tight_layout()
         if save_filename is not None:
             plt.savefig(save_filename)
         else:
             plt.show()
+            print(self.X[:, 0].shape)
+            plt.figure(figsize=(12, 8))
+            plt.hexbin(x=offsets[:, 0],
+                        y=offsets[:, 1],
+                        C=uplifts,
+                        gridsize=12
+            )
+            plt.legend()
+            plt.show()
+
+if __name__ == "__main__":
+    dataset = Dataset(n_rows=1000, 
+                        X_dim=2, 
+                        n_responses=2, 
+                        tradeoff_type='NON_LINEAR', 
+                        prop_score=0.5)
+
+    dataset.plot_effects()
