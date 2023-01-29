@@ -68,10 +68,15 @@ class Dataset:
         self.mm_mask += (self.tao[:, 0] < 0) & (self.tao[:, 1] > 0)
         self.nn_mask = (self.tao[:, 0] < 0) & (self.tao[:, 1] < 0)
 
+        pp = np.where(self.pp_mask, 1, 0)
+        mm = np.where(self.mm_mask, 2, 0)
+        nn = np.where(self.nn_mask, 3, 0)
+        self.clusters = pp + mm + nn
+
     def split(self, n_splits=5) -> List[Fold]:
         # create quantization
         quantiles = pd.qcut(self.Y_obs.mean(axis=1, keepdims=False), q=self.n_quantiles).astype('str')
-        quantiles_w = np.concatenate([self.w, quantiles.reshape(-1, 1)], axis=1)
+        quantiles_w =   concatenate([self.w, quantiles.reshape(-1, 1)], axis=1)
         string_encoding = (
             np.apply_along_axis(lambda x: ''.join(x), axis=1, arr=quantiles_w)
         )

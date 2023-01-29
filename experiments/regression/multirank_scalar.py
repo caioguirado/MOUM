@@ -2,9 +2,12 @@ import os
 import json
 import yaml
 import pathlib
+import numpy as np
+import pandas as pd
 import platypus as p
 from tqdm import tqdm
 import scipy.stats as ss
+import matplotlib.pyplot as plt
 
 from ...data.dataset import Dataset
 from ...evaluation.uplift_curve import UpliftCurve
@@ -46,6 +49,38 @@ class MultirankScalarization(Experiment):
 
         return mr_rank
 
+    def get_stacked_plot(self, array, cumulative=False):
+        n_splits = 10
+        data = {
+                'pp': [], 
+                'mm': [],
+                'nn': []
+                }
+        prev_chunk = []
+        for chunk in np.split(array, n_splits):
+            if cumulative:
+                chunk = np.append(prev_chunk, chunk)
+                prev_chunk = chunk.copy()
+            data['pp'].append((chunk == 1).sum())
+            data['mm'].append((chunk == 2).sum())
+            data['nn'].append((chunk == 3).sum())
+
+        data = pd.DataFrame(data, 
+                index=range(0, n_splits)
+            )
+        
+        data_perc = data.divide(data.sum(axis=1), axis=0)
+
+        plt.stackplot(
+            np.arange(0, 1, 1/n_splits),  
+            data_perc["pp"], 
+            data_perc["mm"],  
+            data_perc["nn"], 
+            labels=['++','+-','--'])
+        plt.legend(loc='upper left')
+        plt.margins(0,0)
+        plt.show()
+
     def run(self):
 
         # create dataset
@@ -67,8 +102,12 @@ class MultirankScalarization(Experiment):
 
         p.nondominated_sort(solution_set)
         ranks = [sol.rank for sol in solution_set]
-        mr_rank = self.get_rank(ranks)
-
+        mrank_idx = self.get_rank(ranks)
+        
+        ranked_clusters = dataset.clusters[mrank_idx]
+        # print(ranked_clusters[1500:2000])
+        self.get_stacked_plot(ranked_clusters, cumulative=True)
+        raise Exception('End MORanking')
         # for w in 0-1 compute scalarization
         results = []
         sw_baseline_rank = self.get_rank(taos, scale=True, w=0.5)
@@ -90,10 +129,4 @@ class MultirankScalarization(Experiment):
         # plot mr+mean, w=0.1, w=0.5, w=0.9 uplift curves
         # after, also check when varying w, if (--) cohort always stay behind
 
-        self.save_results(results)
-
-
-import numpy as np
-mean = [0, 0]
-cov = [[1, 0], [0, 1]]  # diagonal covariance
-x, y = np.random.multivariate_normal(mean, cov, 5000).T        
+        self.save_results(results)   
