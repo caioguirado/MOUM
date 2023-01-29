@@ -96,7 +96,7 @@ class Dataset:
                     im = axs[i, j].hexbin(x=self.X[:, 0], 
                                         y=self.X[:, 1], 
                                         C=self.Y[:, j+1]-self.Y[:, j], 
-                                        gridsize=12
+                                        gridsize=12, cmap='coolwarm'
                     )
                     # im = axs[i, j].tricontourf(self.X[:, 0], 
                     #                         self.X[:, 1], 
@@ -106,7 +106,6 @@ class Dataset:
                     axs[i, j].set_ylabel('X_1')                    
                     fig.colorbar(im, ax=axs[i, j], label=f'tao_{j}')
                     hex_values = im.get_array().reshape(-1, 1)
-                    print(hex_values.shape)
                     taos.append(hex_values)
                     offsets = im.get_offsets()
                 else:

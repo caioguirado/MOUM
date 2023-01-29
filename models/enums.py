@@ -3,6 +3,7 @@ from enum import Enum
 from .uplift_modeling.direct_approach import CausalTree, CausalRF
 from .uplift_modeling.two_model_approach import SLearner, TLearner, XLearner, RLearner
 from .regression.problem_transformation import MultiTarget, SingleTarget, RegressorChain
+from .regression.algorithm_adaptation import ReducedRankRegression
 
 class ModelEnum(Enum):
     CAUSAL_TREE = CausalTree
@@ -16,3 +17,4 @@ class MethodEnum(Enum):
     ST = SingleTarget
     MT = MultiTarget
     RC = RegressorChain
+    RRR = ReducedRankRegression
