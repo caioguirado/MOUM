@@ -4,7 +4,7 @@ global:
 
 dimensions:
   dataset:
-    n_rows: 1000
+    n_rows: 5000
     n_responses: 2
     X_dim: 3
     prop_score: 0.5

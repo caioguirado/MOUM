@@ -14,7 +14,7 @@ class HighlyNonLinearTradeoff(Tradeoff):
 
         # pick mean points
         centers = np.random.uniform(0.1, 0.9, size=(n_gaussians, X.shape[1])).round(1)
-        stds = np.random.uniform(0, 0.1, n_gaussians).round(2)
+        stds = np.random.uniform(0.1, 0.15, n_gaussians).round(2)
         orientation = np.random.choice([1, -1], size=n_gaussians)
         mu = np.zeros(X.shape[0])
         for i in range(n_gaussians):

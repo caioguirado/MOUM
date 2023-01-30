@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
+from scipy import stats
 from matplotlib import cm
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, BoundaryNorm
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import StratifiedKFold
 
@@ -70,22 +71,14 @@ class Dataset:
         self.mm_mask += (self.tao[:, 0] < 0) & (self.tao[:, 1] > 0)
         self.nn_mask = (self.tao[:, 0] < 0) & (self.tao[:, 1] < 0)
 
-        pp = np.where(self.pp_mask, 1, 0)
-        mm = np.where(self.mm_mask, 2, 0)
-        nn = np.where(self.nn_mask, 3, 0)
-        self.clusters = pp + mm + nn
-
-        top = cm.get_cmap('Greens', 128)
-        mid = cm.get_cmap('Blues', 128)
-        bottom = cm.get_cmap('Reds', 128)
-
-        newcolors = np.vstack((
-                            bottom(np.linspace(0, 1, 128)),
-                            mid(np.linspace(0, 1, 128)),
-                            top(np.linspace(0, 1, 128)),
-                            ))
-        self.cmap = ListedColormap(newcolors, name='OrangeBlue')
+        # pp = np.where(self.pp_mask, 1, 0)
+        # mm = np.where(self.mm_mask, 2, 0)
+        # nn = np.where(self.nn_mask, 3, 0)
+        # self.clusters = pp + mm + nn
+        self.clusters = self.get_hex_clusters(values=self.tao)
+        
         self.cmap = 'RdYlGn'
+        self.norm = BoundaryNorm(np.arange(0.5, 4, 1), plt.cm.get_cmap(self.cmap).N)
 
     def split(self, n_splits=5) -> List[Fold]:
         # create quantization
@@ -109,13 +102,28 @@ class Dataset:
         self.tradeoff = TradeoffEnum[self.tradeoff_type].value()
         return self.tradeoff.create_Y(self.X, self.n_responses)
 
+    def hexbin_truncate(self, x):
+        return stats.mode(x)[0].item()
+
+    def get_hex_clusters(self, values):
+        pp_mask = (values[:, 0] > 0) & (values[:, 1] > 0)
+        mm_mask = (values[:, 0] > 0) & (values[:, 1] < 0)
+        mm_mask += (values[:, 0] < 0) & (values[:, 1] > 0)
+        nn_mask = (values[:, 0] < 0) & (values[:, 1] < 0)
+
+        pp = np.where(pp_mask, 3, 0)
+        mm = np.where(mm_mask, 2, 0)
+        nn = np.where(nn_mask, 1, 0)
+
+        return pp + mm + nn
+
     def plot_effects(self, save_filename=None):
         alpha=0.2
         nrows = self.n_responses + 1
         ncols = 2
         fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8))
         for i in range(nrows):
-            taos = []
+            hex_taos = []
             for j in range(ncols):
                 if i == nrows-1:
                     im = axs[i, j].hexbin(x=self.X[:, 0], 
@@ -136,13 +144,13 @@ class Dataset:
                     axs[i, j].set_ylabel(r'$X_2$')
                     fig.colorbar(im, ax=axs[i, j], label=fr'$\tau_{j}$')
                     hex_values = im.get_array().reshape(-1, 1)
-                    taos.append(hex_values)
+                    hex_taos.append(hex_values)
                     offsets = im.get_offsets()
                 else:
                     # sns.regplot(x=self.X[:, i], y=self.Y[:, j], ax=axs[i, j], scatter=False, label=f'Y_{j}_0')
                     # sns.regplot(x=self.X[:, i], y=self.Y[:, j+1], ax=axs[i, j], scatter=False, label=f'Y_{j}_1')
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, j], alpha=alpha, label=fr'$Y_{j}^0$')
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, j+1], alpha=alpha, label=fr'$Y_{j}^1$')
+                    axs[i, j].scatter(self.X[:, i], self.Y[:, 2*j], alpha=alpha, label=fr'$Y_{j}^0$')
+                    axs[i, j].scatter(self.X[:, i], self.Y[:, 2*j+1], alpha=alpha, label=fr'$Y_{j}^1$')
                     axs[i, j].set_xlabel(fr'$X_{i+1}$')
                     axs[i, j].set_ylabel(fr'$Y_{j}$')
                     axs[i, j].legend()
@@ -151,8 +159,8 @@ class Dataset:
 
         plt.savefig(f'{save_filename}.png')
     
+        # scatter clusters
         plt.figure(figsize=(12, 8))
-
         plt.scatter(self.X[:, 0][self.pp_mask], self.X[:, 1][self.pp_mask], s=45, alpha=0.8, c='g', label='++')
         plt.scatter(self.X[:, 0][self.mm_mask], self.X[:, 1][self.mm_mask], s=45, alpha=0.8, c='b', label='+-')
         plt.scatter(self.X[:, 0][self.nn_mask], self.X[:, 1][self.nn_mask], s=45, alpha=0.8, c='r', label='--')
@@ -161,18 +169,21 @@ class Dataset:
         plt.legend()
         plt.savefig(f'{save_filename}_clusters.png')
 
-    # def plot_clusters(self):
-    #     for j in range(0, ncols+1, 2):
-    #         tau = self.Y[:, j+1]-self.Y[:, j]
-    #     im = axs[i, axj].hexbin(x=self.X[:, 0], 
-    #                         y=self.X[:, 1], 
-    #                         C=tau, 
-    #                         gridsize=12, 
-    #                         cmap='coolwarm',
-    #                         vmin=tau.min(), 
-    #                         vmax=tau.max(), 
-    #                         clim=(tau.min(), tau.max())
-    #     )
+        # hexbin clusters
+        plt.figure(figsize=(12, 8))
+        plt.hexbin(x=offsets[:, 0],
+                    y=offsets[:, 1],
+                    # C=self.clusters,
+                    C=self.get_hex_clusters(values=np.concatenate(hex_taos, axis=1)),
+                    cmap=self.cmap,
+                    norm=self.norm,
+                    # reduce_C_function=self.hexbin_truncate,
+                    gridsize=12
+        )
+        cbar = plt.colorbar(ticks=np.arange(1, 4, 1))
+        cbar.ax.set_yticklabels(['--', '+-', '++'])
+        plt.savefig(f'{save_filename}_hexclusters.png')
+
 
 if __name__ == "__main__":
     dataset = Dataset(n_rows=5000, 
