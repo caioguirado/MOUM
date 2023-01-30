@@ -26,7 +26,7 @@ class GetPlots(Experiment):
     def save_results(self, results):
         dir_name = self.verify_file_structure(self.file_name)
         for result in results:
-            result.plot_effects(save_filename=os.path.join(dir_name, f'{result.tradeoff_type}.png'))
+            result.plot_effects(save_filename=os.path.join(dir_name, f'{result.tradeoff_type}'))
 
     def run(self):
 

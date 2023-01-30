@@ -31,7 +31,7 @@ class MethodModel(Experiment):
         for result in results:
             plt.plot(result['uplift_curve'][0], result['uplift_curve'][1], 
                     label=f'{result["method"]}_{result["model"]}')
-        # plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][2], label='True uplift') # tao true
+        plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][2], label='True uplift') # tao true
         plt.plot(results[0]['uplift_curve'][0], results[0]['uplift_curve'][-1], label='Random', linestyle='--', color='r') # random policy
         pos = ax.get_position()
         ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height])

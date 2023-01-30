@@ -18,8 +18,8 @@ class NonLinearTradeoff(Tradeoff):
         mu_0_0 = -0.5 * mu + 0.7
         mu_0_1 = 0.5 * mu - 0.7
         self.mus += [mu_0_0, mu_0_1]
-        Y_0_0 = (mu_0_0 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
-        Y_0_1 = (mu_0_1 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
+        Y_0_0 = (mu_0_0 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
+        Y_0_1 = (mu_0_1 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
 
         return np.concatenate([Y_0_0, Y_0_1], axis=1)
 
@@ -30,8 +30,8 @@ class NonLinearTradeoff(Tradeoff):
         
         mu_d_0 = 0.5 * mu - 0.7
         mu_d_1 = -0.5 * mu + 0.7
-        Y_d_0 = (mu_d_0 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
-        Y_d_1 = (mu_d_1 + np.random.normal(0, 0.1, X.shape[0])).reshape(-1, 1)
+        Y_d_0 = (mu_d_0 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
+        Y_d_1 = (mu_d_1 + np.random.normal(0, 1, X.shape[0])).reshape(-1, 1)
 
         return np.concatenate([Y_d_0, Y_d_1], axis=1)
 

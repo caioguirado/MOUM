@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
+from matplotlib import cm
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import StratifiedKFold
 
@@ -73,10 +75,22 @@ class Dataset:
         nn = np.where(self.nn_mask, 3, 0)
         self.clusters = pp + mm + nn
 
+        top = cm.get_cmap('Greens', 128)
+        mid = cm.get_cmap('Blues', 128)
+        bottom = cm.get_cmap('Reds', 128)
+
+        newcolors = np.vstack((
+                            bottom(np.linspace(0, 1, 128)),
+                            mid(np.linspace(0, 1, 128)),
+                            top(np.linspace(0, 1, 128)),
+                            ))
+        self.cmap = ListedColormap(newcolors, name='OrangeBlue')
+        self.cmap = 'RdYlGn'
+
     def split(self, n_splits=5) -> List[Fold]:
         # create quantization
         quantiles = pd.qcut(self.Y_obs.mean(axis=1, keepdims=False), q=self.n_quantiles).astype('str')
-        quantiles_w =   concatenate([self.w, quantiles.reshape(-1, 1)], axis=1)
+        quantiles_w = np.concatenate([self.w, quantiles.reshape(-1, 1)], axis=1)
         string_encoding = (
             np.apply_along_axis(lambda x: ''.join(x), axis=1, arr=quantiles_w)
         )
@@ -96,7 +110,7 @@ class Dataset:
         return self.tradeoff.create_Y(self.X, self.n_responses)
 
     def plot_effects(self, save_filename=None):
-        alpha=0.08
+        alpha=0.2
         nrows = self.n_responses + 1
         ncols = 2
         fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8))
@@ -108,10 +122,11 @@ class Dataset:
                                         y=self.X[:, 1], 
                                         C=self.tao[:, j], 
                                         gridsize=12, 
-                                        cmap='coolwarm',
-                                        vmin=self.tao[:, j].min(), 
-                                        vmax=self.tao[:, j].max(), 
-                                        clim=(self.tao[:, j].min(), self.tao[:, j].max())
+                                        # cmap='coolwarm',
+                                        cmap=self.cmap,
+                                        # vmin=self.tao[:, j].min(), 
+                                        # vmax=self.tao[:, j].max(), 
+                                        # clim=(self.tao[:, j].min(), self.tao[:, j].max())
                     )
                     # im = axs[i, j].tricontourf(self.X[:, 0], 
                     #                         self.X[:, 1], 
@@ -133,35 +148,31 @@ class Dataset:
                     axs[i, j].legend()
 
         plt.tight_layout()
-        if save_filename is not None:
-            plt.savefig(save_filename)
-        else:
-            plt.figure(figsize=(12, 8))
-            # plt.hexbin(x=offsets[:, 0],
-            #             y=offsets[:, 1],
-            #             C=uplifts,
-            #             gridsize=12
-            # )
-            plt.scatter(self.X[:, 0][self.pp_mask], self.X[:, 1][self.pp_mask], s=45, alpha=0.8, c='g', label='++')
-            plt.scatter(self.X[:, 0][self.mm_mask], self.X[:, 1][self.mm_mask], s=45, alpha=0.8, c='b', label='+-')
-            plt.scatter(self.X[:, 0][self.nn_mask], self.X[:, 1][self.nn_mask], s=45, alpha=0.8, c='r', label='--')
-            plt.xlabel(r'$X_1$')
-            plt.ylabel(r'$X_2$')
-            plt.legend()
-            plt.show()
 
-    def plot_clusters(self):
-        for j in range(0, ncols+1, 2):
-            tau = self.Y[:, j+1]-self.Y[:, j]
-        im = axs[i, axj].hexbin(x=self.X[:, 0], 
-                            y=self.X[:, 1], 
-                            C=tau, 
-                            gridsize=12, 
-                            cmap='coolwarm',
-                            vmin=tau.min(), 
-                            vmax=tau.max(), 
-                            clim=(tau.min(), tau.max())
-        )
+        plt.savefig(f'{save_filename}.png')
+    
+        plt.figure(figsize=(12, 8))
+
+        plt.scatter(self.X[:, 0][self.pp_mask], self.X[:, 1][self.pp_mask], s=45, alpha=0.8, c='g', label='++')
+        plt.scatter(self.X[:, 0][self.mm_mask], self.X[:, 1][self.mm_mask], s=45, alpha=0.8, c='b', label='+-')
+        plt.scatter(self.X[:, 0][self.nn_mask], self.X[:, 1][self.nn_mask], s=45, alpha=0.8, c='r', label='--')
+        plt.xlabel(r'$X_1$')
+        plt.ylabel(r'$X_2$')
+        plt.legend()
+        plt.savefig(f'{save_filename}_clusters.png')
+
+    # def plot_clusters(self):
+    #     for j in range(0, ncols+1, 2):
+    #         tau = self.Y[:, j+1]-self.Y[:, j]
+    #     im = axs[i, axj].hexbin(x=self.X[:, 0], 
+    #                         y=self.X[:, 1], 
+    #                         C=tau, 
+    #                         gridsize=12, 
+    #                         cmap='coolwarm',
+    #                         vmin=tau.min(), 
+    #                         vmax=tau.max(), 
+    #                         clim=(tau.min(), tau.max())
+    #     )
 
 if __name__ == "__main__":
     dataset = Dataset(n_rows=5000, 

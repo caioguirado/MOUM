@@ -10,22 +10,21 @@ class HighlyNonLinearTradeoff(Tradeoff):
 
     def get_main_effect(self, X):
         # create random gaussians
-        n_gaussians = 8
+        n_gaussians = 4
 
         # pick mean points
-        centers = np.random.uniform(0, 1, size=(n_gaussians, X.shape[1])).round(1)
-        stds = np.random.uniform(0, 0.2, n_gaussians).round(2)
+        centers = np.random.uniform(0.1, 0.9, size=(n_gaussians, X.shape[1])).round(1)
+        stds = np.random.uniform(0, 0.1, n_gaussians).round(2)
         orientation = np.random.choice([1, -1], size=n_gaussians)
         mu = np.zeros(X.shape[0])
         for i in range(n_gaussians):
-            rv = multivariate_normal(mean=centers[i], cov=np.eye(len(centers[i]))*stds[i])
+            rv = multivariate_normal(mean=centers[i], cov=np.ones(len(centers[i]))*stds[i])
             mu += rv.pdf(X) * orientation[i]
         
         mu_0_0 =  mu
         mu_0_1 = 2 * mu
-        self.mus += [mu_0_0, mu_0_1]
-        Y_0_0 = (mu_0_0 + np.random.normal(0, 0.05, X.shape[0])).reshape(-1, 1)
-        Y_0_1 = (mu_0_1 + np.random.normal(0, 0.05, X.shape[0])).reshape(-1, 1)
+        Y_0_0 = (mu_0_0 + np.random.normal(0, 0.2, X.shape[0])).reshape(-1, 1)
+        Y_0_1 = (mu_0_1 + np.random.normal(0, 0.2, X.shape[0])).reshape(-1, 1)
 
         return np.concatenate([Y_0_0, Y_0_1], axis=1)
 
