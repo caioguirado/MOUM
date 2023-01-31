@@ -129,17 +129,9 @@ class Dataset:
                     im = axs[i, j].hexbin(x=self.X[:, 0], 
                                         y=self.X[:, 1], 
                                         C=self.tao[:, j], 
-                                        gridsize=12, 
-                                        # cmap='coolwarm',
+                                        gridsize=12,
                                         cmap=self.cmap,
-                                        # vmin=self.tao[:, j].min(), 
-                                        # vmax=self.tao[:, j].max(), 
-                                        # clim=(self.tao[:, j].min(), self.tao[:, j].max())
                     )
-                    # im = axs[i, j].tricontourf(self.X[:, 0], 
-                    #                         self.X[:, 1], 
-                    #                         self.Y[:, j+1]-self.Y[:, j]
-                    # )
                     axs[i, j].set_xlabel(r'$X_1$')
                     axs[i, j].set_ylabel(r'$X_2$')
                     fig.colorbar(im, ax=axs[i, j], label=fr'$\tau_{j}$')
@@ -147,16 +139,24 @@ class Dataset:
                     hex_taos.append(hex_values)
                     offsets = im.get_offsets()
                 else:
-                    # sns.regplot(x=self.X[:, i], y=self.Y[:, j], ax=axs[i, j], scatter=False, label=f'Y_{j}_0')
-                    # sns.regplot(x=self.X[:, i], y=self.Y[:, j+1], ax=axs[i, j], scatter=False, label=f'Y_{j}_1')
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, 2*j], alpha=alpha, label=fr'$Y_{j}^0$')
-                    axs[i, j].scatter(self.X[:, i], self.Y[:, 2*j+1], alpha=alpha, label=fr'$Y_{j}^1$')
-                    axs[i, j].set_xlabel(fr'$X_{i+1}$')
-                    axs[i, j].set_ylabel(fr'$Y_{j}$')
-                    axs[i, j].legend()
+                    # axs[i, j].scatter(self.X[:, i], self.Y[:, 2*j], alpha=alpha, label=fr'$Y_{j}^0$')
+                    # axs[i, j].scatter(self.X[:, i], self.Y[:, 2*j+1], alpha=alpha, label=fr'$Y_{j}^1$')
+                    # axs[i, j].set_xlabel(fr'$X_{i+1}$')
+                    # axs[i, j].set_ylabel(fr'$Y_{j}$')
+                    # axs[i, j].legend(loc='upper left')
+
+                    im = axs[i, j].hexbin(x=self.X[:, 0], 
+                                            y=self.X[:, 1], 
+                                            C=self.Y[:, 2*j+i], 
+                                            gridsize=12, 
+                                            cmap=self.cmap,
+                    )
+
+                    axs[i, j].set_xlabel(r'$X_1$')
+                    axs[i, j].set_ylabel(r'$X_2$')
+                    fig.colorbar(im, ax=axs[i, j], label=fr'$Y_{j}^{i}$')
 
         plt.tight_layout()
-
         plt.savefig(f'{save_filename}.png')
     
         # scatter clusters
@@ -166,7 +166,6 @@ class Dataset:
         plt.scatter(self.X[:, 0][self.nn_mask], self.X[:, 1][self.nn_mask], s=45, alpha=0.8, c='r', label='--')
         plt.xlabel(r'$X_1$')
         plt.ylabel(r'$X_2$')
-        plt.legend()
         plt.savefig(f'{save_filename}_clusters.png')
 
         # hexbin clusters
@@ -182,6 +181,9 @@ class Dataset:
         )
         cbar = plt.colorbar(ticks=np.arange(1, 4, 1))
         cbar.ax.set_yticklabels(['--', '+-', '++'])
+        plt.xlabel(r'$X_1$')
+        plt.ylabel(r'$X_2$')
+        plt.title('Treatment effect clusters')
         plt.savefig(f'{save_filename}_hexclusters.png')
 
 

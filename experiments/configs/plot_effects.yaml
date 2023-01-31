@@ -6,7 +6,7 @@ dimensions:
   dataset:
     n_rows: 5000
     n_responses: 2
-    X_dim: 3
+    X_dim: 2
     prop_score: 0.5
     n_quantiles: 5
     tradeoff_types: 
