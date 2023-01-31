@@ -6,7 +6,7 @@ dimensions:
   dataset:
     n_rows: 5000
     n_responses: 2
-    tradeoff_type: 'NON_LINEAR'
+    tradeoff_type: 'HIGHLY_NON_LINEAR'
     prop_score: 0.5
     n_quantiles: 5
 
@@ -36,10 +36,10 @@ dimensions:
         learner: RF
         random_state: 42
 
-    - enum: RL
-      args:
-        learner: RF
-        random_state: 42        
+    # - enum: RL
+    #   args:
+    #     learner: RF
+    #     random_state: 42        
 
   x_dim: 6
 

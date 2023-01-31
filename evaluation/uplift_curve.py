@@ -87,7 +87,8 @@ class UpliftCurve:
         return ps, mr_rank, scalar_w, random
 
     def get_auuc(self):
-        return np.array(self.get_curve()[1]).sum() # subtract random curve?
+        curve = self.get_curve()
+        return np.array(curve[1]).sum() - len(curve[1])/2 * curve[1][-1]
 
 # from ..data.dataset import Dataset
 # import matplotlib.pyplot as plt

@@ -12,32 +12,13 @@ dimensions:
     n_quantiles: 5
 
   models:
-    - enum: CAUSAL_TREE
-      args:
-        criterion: 'standard_mse'
-        control_name: 0
 
     - enum: CAUSAL_FOREST
       args:
           criterion: 'standard_mse'
           control_name: 0
-      
-    - enum: TL
-      args:
-        learner: RF
-        random_state: 42
 
     - enum: SL
-      args:
-        learner: RF
-        random_state: 42
-
-    - enum: XL
-      args:
-        learner: RF
-        random_state: 42
-
-    - enum: RL
       args:
         learner: RF
         random_state: 42
@@ -45,7 +26,6 @@ dimensions:
   methods:
     - RC
     - ST
-    - MT
 
 metrics:
   - AAUUC

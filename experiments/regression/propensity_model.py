@@ -3,7 +3,10 @@ import json
 import yaml
 import pathlib
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
+
+import matplotlib.pyplot as plt
 
 from ...data.dataset import Dataset
 from ...evaluation.uplift_curve import UpliftCurve
@@ -36,6 +39,29 @@ class PropensityModel(Experiment):
         
         with open(os.path.join(dir_name, 'table.tex'), 'w') as file:
             file.write(df.to_latex())
+
+
+        scatter = []
+        for result in results:
+            scatter.append([result['propensity_score'], result['armse_cv_mean']])
+
+        fig = (
+            pd
+            .DataFrame(results)
+            .drop(columns=['cv_results'])
+            .round(2)
+            .assign(name=lambda x: x['method'] + '_' + x['model'])
+            [['name', 'propensity_score', 'armse_cv_mean']]
+            .pivot(index='propensity_score',
+                    columns='name', 
+                    values=['armse_cv_mean'])
+            # .groupby(by=['name', 'propensity_score'])
+            # ['armse_cv_mean']
+            # .reset_index()
+        ).plot(legend=True, figsize=(12, 8), x='propensity_score')
+        # print(fig)
+        plt.show()
+        # fig.figure.savefig(os.path.join(dir_name, f'pscore.png'))
 
     def run(self):
 

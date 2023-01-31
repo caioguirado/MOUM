@@ -24,7 +24,7 @@ class HighlyNonLinearTradeoff(Tradeoff):
         mu = np.zeros(X.shape[0])
         for i in range(n_gaussians):
             rv = multivariate_normal(mean=centers[i], cov=np.eye(len(centers[i]))*stds[i])
-            mu += rv.pdf(X) * orientation[i]
+            mu += rv.pdf(X[:, :2]) * orientation[i]
         
         mu_0_0 = -mu
         mu_0_1 = mu
@@ -44,7 +44,7 @@ class HighlyNonLinearTradeoff(Tradeoff):
         mu = np.zeros(X.shape[0])
         for i in range(n_gaussians):
             rv = multivariate_normal(mean=centers[i], cov=np.eye(len(centers[i]))*stds[i])
-            mu += rv.pdf(X) * orientation[i]
+            mu += rv.pdf(X[:, :2]) * orientation[i]
         
         mu_0_0 = -mu
         mu_0_1 = mu

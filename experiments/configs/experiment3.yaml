@@ -11,15 +11,15 @@ dimensions:
     n_quantiles: 5
 
   models:
-    - enum: CAUSAL_TREE
-      args:
-        criterion: 'standard_mse'
-        control_name: 0
+    # - enum: CAUSAL_TREE
+    #   args:
+    #     criterion: 'standard_mse'
+    #     control_name: 0
 
-    - enum: CAUSAL_FOREST
-      args:
-          criterion: 'standard_mse'
-          control_name: 0
+    # - enum: CAUSAL_FOREST
+    #   args:
+    #       criterion: 'standard_mse'
+    #       control_name: 0
       
     - enum: TL
       args:
@@ -31,17 +31,17 @@ dimensions:
         learner: RF
         random_state: 42
 
-    - enum: XL
-      args:
-        learner: RF
-        random_state: 42
+    # - enum: XL
+    #   args:
+    #     learner: RF
+    #     random_state: 42
 
-    - enum: RL
-      args:
-        learner: RF
-        random_state: 42
+    # - enum: RL
+    #   args:
+    #     learner: RF
+    #     random_state: 42
 
-  propensity_step: 0.1
+  propensity_step: 0.5
 
   method: ST
 

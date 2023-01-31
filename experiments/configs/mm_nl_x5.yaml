@@ -7,7 +7,7 @@ dimensions:
     n_rows: 5000
     X_dim: 5
     n_responses: 2
-    tradeoff_type: 'NON_LINEAR'
+    tradeoff_type: 'LINEAR'
     prop_score: 0.5
     n_quantiles: 5
 
