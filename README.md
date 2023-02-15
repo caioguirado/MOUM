@@ -7,6 +7,6 @@ To create a new experiment, clone one of the templates from `./experiments/confi
 
 To run an experiment, execute the command:
 
-`python3 MOUM.run_experiment <experiment_name>`
+`python3 -m MOUM.run_experiment <experiment_name>`
 
 where `<experiment_name>` is the name of the `.yaml` file in `./experiments/configs/`. The experiment results will be saved under the `./experiment/results/` path.
